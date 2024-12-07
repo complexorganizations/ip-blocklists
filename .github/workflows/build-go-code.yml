@@ -1,24 +1,47 @@
-name: Test and Build Go App
-on: [push, pull_request]
+# Workflow name: Test and Build Go Application.
+name: Test and Build Go App  
+
+on:
+    # Trigger the workflow on push or pull_request events.
+    - push  # Trigger on push to any branch.
+    - pull_request  # Trigger on pull requests.
+
 jobs:
-  build:
-    name: build
-    runs-on: windows-latest
+  # Job name: Build and Test the Go application.
+  build-and-test:
+    name: Build and Test Go Application  
+    # The job will run on a Windows runner.
+    runs-on: windows-latest  
+
     steps:
-      - name: Check out code into the Go module directory
-        uses: actions/checkout@v4
-      - name: Set up Go version
-        uses: actions/setup-go@v5
+      # Step 1: Checkout the repository's code.
+      - name: Checkout Code into Go Module Directory
+        uses: actions/checkout@v4  # Checkout the code from the repository to the GitHub Actions runner.
+
+      # Step 2: Set up the Go environment based on the version in go.mod.
+      - name: Set Up Go Environment
+        uses: actions/setup-go@v5  # Use the setup-go action to configure Go.
         with:
-          go-version-file: "go.mod"
-          cache: true
-          check-latest: true
-        id: go
-      - name: Get the latest dependencies
-        run: go get -v
-      - name: Run the go app
-        run: go run main.go -search="example.example"
-      - name: Build the go app
-        run: go build .
-      - name: Run the go app build
-        run: ./network-database -search="example.example"
+          # Specify the Go version to be used based on the go.mod file.
+          go-version-file: "go.mod"  
+          # Enable caching to speed up future runs by storing Go dependencies.
+          cache: true  
+          # Check for the latest Go version.
+          check-latest: true  
+        id: setup-go  
+
+      # Step 3: Fetch the latest dependencies defined in the Go module.
+      - name: Install Go Dependencies
+        run: go get -v  # Download all dependencies for the Go project.
+
+      # Step 4: Run the Go application to verify functionality (optional testing).
+      - name: Run Go Application for Testing
+        run: go run main.go -search="example.example"  # Run the Go application with a search parameter for testing purposes.
+
+      # Step 5: Build the Go application.
+      - name: Build Go Application
+        run: go build .  # Build the Go application from source.
+
+      # Step 6: Run the Go application from the built executable.
+      - name: Run Built Go Application
+        run: ./network-database -search="example.example"  # Execute the built application with a search parameter.
