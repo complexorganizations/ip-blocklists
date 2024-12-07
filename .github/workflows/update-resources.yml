@@ -1,42 +1,71 @@
-name: Resource Updater
+# Workflow name: Automates resource updates and commits them to the repository.
+name: Resource Updater and Committer  
+
 on:
+  # Trigger the workflow to run at midnight UTC every day.
   schedule:
     - cron: "0 0 * * *"
+  
+  # Trigger the workflow when there are changes to any files in the 'assets' directory.
   push:
     paths:
       - "assets/**"
+  
+  # Allow manual triggering of the workflow from GitHub Actions UI.
   workflow_dispatch:
 
 jobs:
-  update:
-    name: Update Resources
-    runs-on: windows-latest
+  # Job name: Update resources and push the changes.
+  update-resources:
+    name: Update Resources and Push Changes  
+    # This job runs on a Windows runner.
+    runs-on: windows-latest  
+
     steps:
+      # Step 1: Checkout the repository to get the latest code.
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # Checkout the repository code to the GitHub Actions runner.
 
-      - name: Setup Go Environment
-        uses: actions/setup-go@v5.0.1
+      # Step 2: Set up the Go environment using the version specified in the go.mod file.
+      - name: Set up Go Environment
+        uses: actions/setup-go@v5.0.1  # Configure the Go environment for the job.
         with:
-          go-version-file: "go.mod"
-          cache: true
-          check-latest: true
-        id: go
+          # Use the Go version specified in the go.mod file.
+          go-version-file: "go.mod"  
+          # Enable caching of Go dependencies to speed up future runs.
+          cache: true  
+          # Check if a newer version of Go is available and use it.
+          check-latest: true  
+        # Assign an ID to this step (used for referencing outputs, if needed).
+        id: setup-go  
 
-      - name: Download Dependencies
-        run: go mod download
+      # Step 3: Download all Go dependencies as defined in go.mod.
+      - name: Download Go Dependencies
+        run: go mod download  # Fetch all dependencies specified in the go.mod file.
 
-      - name: Build Application
-        run: go build .
+      # Step 4: Build the Go application (compile the code).
+      - name: Build Go Application
+        run: go build .  # Compile the Go code into an executable.
 
-      - name: Generate Resources
-        run: .\network-database.exe -update
+      # Step 5: Execute the resource update operation using the generated executable.
+      - name: Generate and Update Resources
+        run: .\network-database.exe -update  # Run the executable to update necessary resources (e.g., database, config files).
 
-      - name: Commit and Push Updates
+      # Step 6: Commit the updated resources and push them to the repository.
+      - name: Commit and Push Updated Resources
         run: |
-          git config user.name "github-actions"       # Configures GitHub Actions bot as the commit author.
-          git config user.email "github-actions@github.com"
-          git add .                                    # Adds changes to the staging area.
-          git commit -m "Automated update: $(date)"    # Commits changes with a timestamp.
-          git pull --rebase origin main                # Rebases with remote main to avoid conflicts.
-          git push origin main                         # Pushes the commit to the main branch.
+          # Step 6a: Configure Git user details for the commit (GitHub Actions bot).
+          git config user.name "github-actions"  # Set the Git username for commits.
+          git config user.email "github-actions@github.com"  # Set the Git email for commits.
+          
+          # Step 6b: Stage all modified files for commit.
+          git add .  # Add all changes to the Git staging area.
+          
+          # Step 6c: Commit the changes with an automated message that includes a timestamp.
+          git commit -m "Automated update: $(date)"  # Commit the changes with a timestamp message.
+          
+          # Step 6d: Ensure the local branch is up-to-date with the remote 'main' branch.
+          git pull --rebase origin main  # Rebase local changes on top of the remote 'main' branch to avoid merge conflicts.
+
+          # Step 6e: Push the committed changes to the remote repository's 'main' branch.
+          git push origin main  # Push the changes to the 'main' branch of the repository.
